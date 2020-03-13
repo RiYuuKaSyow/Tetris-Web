@@ -7,10 +7,7 @@ const end = 0 ;
 let playstate = end ;
 let droptime = 1000 ;
 
-context.lineWidth = "2" ;
-context.strokeStyle = "#000" ;
-context.strokeRect(0,0,board.width ,board.height) ; 
-//context.scale(30,30);
+
 
 let Block = []
 for(let i = 0 ; i < 20; i++){
@@ -29,10 +26,24 @@ function createMatrix(){
 }
 
 let player = {
-    pos : { x : 0 , y : 0} ,
+    pos : { x : (board.width/scale)/2-1 , y : 0} ,
     matrix : createMatrix() 
 };
 
+function newPlayer(player){
+    player.pos = { x : (board.width/scale)/2 , y : 0},
+    player.matrix = createMatrix() ;
+}
+
+function DrawBackground(){
+
+    context.fillStyle = "#fff" ;
+    context.fillRect(0,0,board.width ,board.height) ;
+    context.lineWidth = "2" ;
+    context.strokeStyle = "#000" ;
+    context.strokeRect(0,0,board.width ,board.height) ; 
+    //context.scale(30,30);
+}
 
 function DrawMatrix(matrix,pos){
     matrix.forEach((row,y) => {
@@ -42,38 +53,53 @@ function DrawMatrix(matrix,pos){
                 context.fillRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
                 context.strokeStyle = "#fff" ;
                 context.strokeRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
+            }
+        });
+    });
+}
+function DrawShadow(matrix,pos){
+    matrix.forEach((row,y) => {
+        row.forEach((col,x) => {
+            if(matrix[y][x] !== 0){
                 context.strokeStyle = "#c6c" ;
                 context.strokeRect((pos.x+x)*scale,board.height-(matrix.length-1-y)*scale,1*scale,1*scale);
             }
         });
     });
 }
+function BottomPos(){
+    /*while( Block[ (board.height/scale)-(matrix.length-1-y) ] !== 0 ){
+
+    }
+    (board.height/scale)-(matrix.length-1-y)*/
+}
 
 function Drop(){
     player.pos.y++;
-    if( checkCross(player.matrix,player.pos) ){
+    if( checkCross(Block,player) ){
         player.pos.y--;
-        merge(player.matrix,player.pos) ;
+        merge(Block,player) ;
     }
     setTimeout(Drop,droptime);
 }
 
-function merge(matrix,pos){
-    matrix.forEach((row,x)=>{
+function merge(Block,player){
+    player.matrix.forEach((row,x)=>{
         row.forEach((col,y)=>{
-            if( matrix[y][x] !== 0 ){
-                Block[y+pos.y][x+pos.x] = matrix[y][x] ;
+            if( player.matrix[y][x] !== 0 ){
+                Block[y+player.pos.y][x+player.pos.x] = player.matrix[y][x] ;
             }
         })
     })
+    newPlayer(player) ;
 }
 
-function checkCross(matrix,pos){
-    for(let y = 0 ; y < matrix.length ; y++){
-        for(let x = 0 ; x < matrix[y].length ; x++){
-            if( matrix[y][x] !== 0 &&
-                (Block[ y+pos.y ] &&
-                 Block[ y+pos.y][ x+pos.x]) !==0 )
+function checkCross(Block,player){
+    for(let y = 0 ; y < player.matrix.length ; y++){
+        for(let x = 0 ; x < player.matrix[y].length ; x++){
+            if( player.matrix[y][x] !== 0 &&
+                (Block[ y+player.pos.y ] &&
+                 Block[ y+player.pos.y][ x+player.pos.x]) !==0 )
                 return true ;
         }
     }
@@ -83,13 +109,10 @@ function checkCross(matrix,pos){
 
 function update(time = 0){
     
-    context.fillStyle = "#fff" ;
-    context.fillRect(0,0,board.width ,board.height) ;
-    context.lineWidth = "2" ;
-    context.strokeStyle = "#000" ;
-    context.strokeRect(0,0,board.width ,board.height) ;  
-
-    DrawMatrix(player.matrix,{x :player.pos.x ,y: player.pos.y} ) ;
+    DrawBackground();
+    DrawMatrix(Block,{x:0,y:0}) ;
+    DrawMatrix(player.matrix,player.pos) ;
+    DrawShadow(player.matrix,player.pos) ;
 
     //requestAnimationFrame(update());
 }
@@ -106,28 +129,56 @@ document.addEventListener('keydown',function(){
         case 'ArrowRight'   : ChangeX( 1 ) ; break;
         case 'ArrowDown'    : ChangeY( 1 );  break;
         case 'Space'        : GoBottom() ; break;
-        case 'KeyZ'         : console.log('z');     break;
-        case 'KeyX'         : console.log('x');     break;
+        case 'KeyZ'         : Spin();     break;
+        case 'KeyX'         : Spin(false);     break;
         case 'KeyC'         : console.log('c');     break;
     }
 });
 
 function ChangeX(x){
     player.pos.x += x ;
-    if(checkCross(player.matrix,player.pos)){
+    if(checkCross(Block,player)){
         player.pos.x -= x ;
     }
 }
 function ChangeY(y){
     player.pos.y += y ;
-    if(checkCross(player.matrix,player.pos)){
+    if(checkCross(Block,player)){
         player.pos.y -= y ;
     }
 }
 function GoBottom(){
     player.pos.y = board.height / scale + 1 - player.matrix.length ;
 }
-
+function getSpin(matrix,clockwise = true){
+    let len = matrix.length ;
+    let temp = [] ;
+    for(let y = len -1 ; y >= 0; y--){
+        temp.push([]) ;
+        for(let x = 0 ; x < len ; x++){
+            if(clockwise){  
+                temp[len-1-y].push(matrix[x][y]);
+            }else{
+                temp[len-1-y].push(matrix[len-1-x][len-1-y]);
+            }   
+        }
+    }
+    return temp ;
+    console.log(matrix);
+}
+function Spin(clockwise = true){
+    const pos = player.pos.x ;
+    let offset = 1 ;
+    player.matrix = getSpin(player.matrix,clockwise) ;
+    while(checkCross(Block,player)){
+        player.pos.x += offset ;
+        offset = -( offset + ( offset > 0 ? 1 : -1  ) ) ;
+        if(offset > Block[0].length){
+            player.matrix = getSpin(player.matrix,!clockwise) ;
+            return ;
+        }
+    }
+}
 
 setInterval(update,10);
 setTimeout(Drop,droptime);
