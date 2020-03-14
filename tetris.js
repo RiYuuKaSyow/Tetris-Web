@@ -10,6 +10,7 @@ let droptime = 1000 ;
 
 
 let Block = []
+
 for(let i = 0 ; i < 20; i++){
     Block.push([]) ;
     for(let j = 0 ; j < 10 ; j++){
@@ -58,27 +59,30 @@ function DrawMatrix(matrix,pos){
     });
 }
 function DrawShadow(matrix,pos){
+    let bottomy = BottomPos() ;
     matrix.forEach((row,y) => {
         row.forEach((col,x) => {
             if(matrix[y][x] !== 0){
                 context.strokeStyle = "#c6c" ;
-                context.strokeRect((pos.x+x)*scale,board.height-(matrix.length-1-y)*scale,1*scale,1*scale);
+                context.strokeRect((pos.x+x)*scale,(bottomy+y)*scale,1*scale,1*scale);
             }
         });
     });
 }
 function BottomPos(){
-    /*while( Block[ (board.height/scale)-(matrix.length-1-y) ] !== 0 ){
-
+    let bottomy = 0 ;
+    while( !checkCross(Block,{pos:{x:player.pos.x,y:bottomy},matrix:player.matrix}) ){
+        bottomy++ ;
     }
-    (board.height/scale)-(matrix.length-1-y)*/
+    return bottomy-1 ;
 }
 
 function Drop(){
     player.pos.y++;
     if( checkCross(Block,player) ){
         player.pos.y--;
-        merge(Block,player) ;
+        
+        setTimeout(merge(Block,player) ,droptime) ;
     }
     setTimeout(Drop,droptime);
 }
@@ -91,7 +95,22 @@ function merge(Block,player){
             }
         })
     })
+    Clear(Block) ;
     newPlayer(player) ;
+}
+
+function Clear(Block){
+    loop :for(let y = Block.length-1; y >= 0 ; y--){
+        for(let x = 0 ; x < Block[0].length; x++){
+            if(Block[y][x] === 0)
+                continue loop ;
+        }
+        for(let x = y ; x > 0 ; x--){
+            Block[x] = Block[x-1] ;
+        }
+        Block[0] = [0,0,0,0,0,0,0,0,0,0] ;
+        y++ ;
+    }
 }
 
 function checkCross(Block,player){
@@ -99,8 +118,9 @@ function checkCross(Block,player){
         for(let x = 0 ; x < player.matrix[y].length ; x++){
             if( player.matrix[y][x] !== 0 &&
                 (Block[ y+player.pos.y ] &&
-                 Block[ y+player.pos.y][ x+player.pos.x]) !==0 )
-                return true ;
+                 Block[ y+player.pos.y][ x+player.pos.x]) !==0 ){
+                    return true ;
+                 }
         }
     }
     
@@ -148,7 +168,8 @@ function ChangeY(y){
     }
 }
 function GoBottom(){
-    player.pos.y = board.height / scale + 1 - player.matrix.length ;
+    player.pos.y = BottomPos() ;
+    merge(Block,player);
 }
 function getSpin(matrix,clockwise = true){
     let len = matrix.length ;
@@ -164,7 +185,6 @@ function getSpin(matrix,clockwise = true){
         }
     }
     return temp ;
-    console.log(matrix);
 }
 function Spin(clockwise = true){
     const pos = player.pos.x ;
@@ -175,9 +195,11 @@ function Spin(clockwise = true){
         offset = -( offset + ( offset > 0 ? 1 : -1  ) ) ;
         if(offset > Block[0].length){
             player.matrix = getSpin(player.matrix,!clockwise) ;
+            player.pos.x = pos ;
             return ;
         }
     }
+    console.log(player.matrix.length);
 }
 
 setInterval(update,10);
