@@ -1,11 +1,33 @@
 <html>
     <head>
         <title>Tetris</title>
+        <link rel="stylesheet" href="menu.css">
     </head>
     <body>
-        <canvas id="saveMatrix" width="120px" height="120px" ></canvas>
-        <canvas id="tetris" width="300px" height="600px"></canvas>
-        <button id="Start" onclick="TetrisStart();">開始</button>
+        <div id="GameContainer">
+            <div id="SaveBody">
+                <canvas id="saveMatrix" width="132px" height="132px" ></canvas>
+            </div>
+            <div id="GameBody">
+                <canvas id="tetris" width="330px" height="660px"></canvas>
+            </div>
+            <div id="NextsBody">
+                <canvas id="nexts" width="132px" height="660px"></canvas>
+            </div>
+            <div id="ScoreBody">
+                <span id="Score"> 行數 : </span>
+            </div>
+        </div>
+        
+        
+        <button id="Start" onclick="TetrisStart();hide();">開始</button>
         <script src="tetris.js"></script>
+        <script>
+            function hide(){
+                document.getElementById('Start').style.display = 'none' ;
+            }
+            setScore('Score');
+        </script>
+        
     </body>
 </html>

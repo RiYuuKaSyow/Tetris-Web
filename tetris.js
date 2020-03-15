@@ -2,7 +2,9 @@ const board = document.getElementById('tetris') ;
 const boardcontext = board.getContext('2d');
 const saveboard = document.getElementById('saveMatrix') ;
 const savecontext = saveboard.getContext('2d') ;
-const scale = 30 ;
+const nextsboard = document.getElementById('nexts') ;
+const nextscontext = nextsboard.getContext('2d') ;
+const scale = 33 ;
 const playing = 1 ;
 const pause = 2 ;
 const end = 0 ;
@@ -14,7 +16,10 @@ let lasttime = 0 ;
 let playstate = end ;
 let save = null ;
 let saved = false ;
-
+let nextMatrixs = [] ;
+let player = {pos:{x:0,y:0},matrix:[[]]} ;
+let lines = 0 ;
+let ScoreObj = 'Score'
 
 let Block = [] ;
 for(let i = 0 ; i < 20; i++){
@@ -23,13 +28,17 @@ for(let i = 0 ; i < 20; i++){
         Block[i].push(0);
     }
 }
+initMatrixs();
+/*
 let player = {
     pos : { x : (board.width/scale)/2-1 , y : 0} ,
-    matrix : createMatrix(matrixTypes[Math.floor(Math.random()*7) + 1 ]) 
+    matrix : getMatrix()
 };
+*/
 
 DrawSaveBackGroud();
 DrawBackground();
+DrawNextBackground();
 
 /*
 function initBlock(){
@@ -69,9 +78,20 @@ function createMatrix(type){
     return matrix ;
 }
 
+function initMatrixs(){
+    for(let i = 0 ; i < 6; i++){
+        nextMatrixs.push( createMatrix( matrixTypes[Math.floor(Math.random()*7) + 1 ] ) );
+    }
+}
+function getMatrix(){
+    let matrix = nextMatrixs.shift() ;
+    nextMatrixs.push( createMatrix( matrixTypes[Math.floor(Math.random()*7) + 1 ] ) ) ;
+    DrawNext(nextMatrixs) ;
+    return matrix ;
+}
 function newPlayer(player){
     player.pos = { x : (board.width/scale)/2-1 , y : 0},
-    player.matrix = createMatrix(  matrixTypes[  Math.floor( Math.random()*7 ) + 1 ] ) ;
+    player.matrix = getMatrix() ;
 }
 
 function DrawBackground(){
@@ -125,13 +145,17 @@ function Drop(){
 }
 
 function merge(Block,player){
-    player.matrix.forEach((row,y)=>{
-        row.forEach((col,x)=>{
-            if( player.matrix[y][x] !== 0 ){
-                Block[y+player.pos.y][x+player.pos.x] = player.matrix[y][x] ;
-            }
+    try{
+        player.matrix.forEach((row,y)=>{
+            row.forEach((col,x)=>{
+                if( player.matrix[y][x] !== 0 ){
+                    Block[y+player.pos.y][x+player.pos.x] = player.matrix[y][x] ;
+                }
+            })
         })
-    })
+    }catch{
+        TetrisEnd();
+    }
     Clear(Block) ;
     newPlayer(player) ;
     saved = false ;
@@ -148,9 +172,16 @@ function Clear(Block){
         }
         Block[0] = [0,0,0,0,0,0,0,0,0,0] ;
         y++ ;
+        lines++;
+    }
+    ShowScore(lines);
+}
+function ShowScore(lines){
+    let s = document.getElementById(ScoreObj);
+    if( s !== undefined ){
+        s.innerText = '行數:' + lines ;
     }
 }
-
 function checkCross(Block,player){
     for(let y = 0 ; y < player.matrix.length ; y++){
         for(let x = 0 ; x < player.matrix[y].length ; x++){
@@ -166,24 +197,22 @@ function checkCross(Block,player){
 }
 
 function update(time = 0){
-
-    while( time - lasttime >= droptime ){
-        Drop() ;
-        lasttime = time ;
+    if( playstate === playing ){
+        while( time - lasttime >= droptime ){
+            Drop() ;
+            lasttime = time ;
+        }
+    
+        DrawBackground();
+        DrawMatrix(Block,{x:0,y:0}) ;
+        DrawMatrix(player.matrix,player.pos) ;
+        DrawShadow(player.matrix,player.pos) ;
+    
+        requestAnimationFrame(update);
     }
-    DrawBackground();
-    DrawMatrix(Block,{x:0,y:0}) ;
-    DrawMatrix(player.matrix,player.pos) ;
-    DrawShadow(player.matrix,player.pos) ;
-
-    requestAnimationFrame(update);
 }
 
-function TetrisStart(){
-    update();
-}
-
-document.addEventListener('keydown',function(){
+function KeyboardMethod(){
     switch(event.code){
         case 'ArrowLeft'    : ChangeX( -1 ) ;  break;
         case 'ArrowRight'   : ChangeX( 1 ) ; break;
@@ -193,7 +222,26 @@ document.addEventListener('keydown',function(){
         case 'KeyX'         : Spin(false);     break;
         case 'KeyC'         : Save();     break;
     }
-});
+}
+
+function TetrisStart(){
+
+    document.addEventListener('keydown',KeyboardMethod);
+    playstate = playing ;
+    lines = 0 ;
+    newPlayer(player) ;
+    update();
+}
+function TetrisEnd(){
+    playstate = end ;
+    window.cancelAnimationFrame(update);
+    document.removeEventListener('keydown',KeyboardMethod);
+    alert('END');
+}
+
+function setScore(id){
+    ScoreObj =  id ;
+}
 
 function ChangeX(x){
     player.pos.x += x ;
@@ -276,4 +324,30 @@ function DrawSaveMatrix(matrix){
             }
         })
     });
+}
+function DrawNext(nextMatrixs){
+    DrawNextBackground();
+    DrawNextMatrixs(nextMatrixs);
+}
+function DrawNextBackground(){
+    for(let i = 0 ; i < 6 ; i++){
+        nextscontext.fillStyle = '#ccc' ;
+        nextscontext.fillRect(0,nextsboard.height/6*i,nextsboard.width,nextsboard.height/6);
+        nextscontext.strokeStyle = "#000" ;
+        nextscontext.strokeRect(0,nextsboard.height/6*i,nextsboard.width,nextsboard.height/6);
+    }
+}
+function DrawNextMatrixs(nextMatrixs){
+    nextMatrixs.forEach((matrix,i) =>{
+        matrix.forEach((row,y) =>{
+            row.forEach((col,x)=>{
+                if( matrix[y][x] !== 0 ){
+                    nextscontext.fillStyle = matrixcolors[matrix[y][x]] ;
+                    nextscontext.fillRect(x*scale,y*scale+nextsboard.height/6*i,1*scale,1*scale);
+                    nextscontext.strokeStyle = "#fff" ;
+                    nextscontext.strokeRect(x*scale,y*scale+nextsboard.height/6*i,1*scale,1*scale);
+                }
+            })
+        })
+    })
 }
