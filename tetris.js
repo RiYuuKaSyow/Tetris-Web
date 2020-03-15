@@ -4,41 +4,74 @@ const scale = 30 ;
 const playing = 1 ;
 const pause = 2 ;
 const end = 0 ;
+const matrixcolors = ['#ccc','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#080'  ] ;
+const shadowcolors = ['#ccc','#c6c' ,'#ca0' ,'#0cc'  ,'#00c'  ,'#c20'  ,'#c02'  ,'#040'  ] ;
+const matrixs      = [  0   ,'T'    ,'O'    ,'I'    ,'J'    ,'L'    ,'Z'    ,'S'    ] ;
 let playstate = end ;
 let droptime = 1000 ;
+let lasttime = 0 ;
 
 
-
-let Block = []
-
+let Block = [] ;
 for(let i = 0 ; i < 20; i++){
     Block.push([]) ;
     for(let j = 0 ; j < 10 ; j++){
         Block[i].push(0);
     }
 }
-
-function createMatrix(){
-    return [
-        [1, 1, 1],
-        [0, 1, 0],
-        [0, 0, 0]
-    ] ;
-}
-
 let player = {
     pos : { x : (board.width/scale)/2-1 , y : 0} ,
-    matrix : createMatrix() 
+    matrix : createMatrix(matrixs[Math.floor(Math.random()*7) + 1 ]) 
 };
+
+DrawBackground();
+
+/*
+function initBlock(){
+    for(let i = 0 ; i < 20; i++){
+        for(let j = 0 ; j < 10 ; j++){
+            Block[i][j] = 0 ;
+        }
+    }
+}*/
+//TetrisStart();
+
+function createMatrix(type){
+    let matrix ;
+    switch(type){
+        case 'T' : matrix = [   [0, 1, 0],
+                                [1, 1, 1],
+                                [0, 0, 0]   ] ; break;
+        case 'O' : matrix = [   [2, 2],
+                                [2, 2]  ] ; break ;
+        case 'I' : matrix = [   [0, 0, 0, 0],
+                                [3, 3, 3, 3],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0]    ] ; break ;
+        case 'J' : matrix = [   [0, 0, 0],
+                                [4, 0, 0],
+                                [4, 4, 4]   ] ; break ;
+        case 'L' : matrix = [   [0, 0, 0],
+                                [0, 0, 5],
+                                [5, 5, 5]   ] ; break ;
+        case 'Z' : matrix = [   [0, 0, 0],
+                                [6, 6, 0],
+                                [0, 6, 6]   ] ; break ;
+        case 'S' : matrix = [   [0, 0, 0],
+                                [0, 7, 7],
+                                [7, 7, 0]   ] ; break ;
+    }
+    return matrix ;
+}
 
 function newPlayer(player){
     player.pos = { x : (board.width/scale)/2 , y : 0},
-    player.matrix = createMatrix() ;
+    player.matrix = createMatrix(  matrixs[  Math.floor( Math.random()*7 ) + 1 ] ) ;
 }
 
 function DrawBackground(){
 
-    context.fillStyle = "#fff" ;
+    context.fillStyle = "#ccc" ;
     context.fillRect(0,0,board.width ,board.height) ;
     context.lineWidth = "2" ;
     context.strokeStyle = "#000" ;
@@ -50,7 +83,7 @@ function DrawMatrix(matrix,pos){
     matrix.forEach((row,y) => {
         row.forEach((col,x) => {
             if(matrix[y][x] !== 0){
-                context.fillStyle = "#a0a" ;
+                context.fillStyle = matrixcolors[matrix[y][x]] ;
                 context.fillRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
                 context.strokeStyle = "#fff" ;
                 context.strokeRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
@@ -63,14 +96,14 @@ function DrawShadow(matrix,pos){
     matrix.forEach((row,y) => {
         row.forEach((col,x) => {
             if(matrix[y][x] !== 0){
-                context.strokeStyle = "#c6c" ;
+                context.strokeStyle = shadowcolors[matrix[y][x]] ;
                 context.strokeRect((pos.x+x)*scale,(bottomy+y)*scale,1*scale,1*scale);
             }
         });
     });
 }
 function BottomPos(){
-    let bottomy = 0 ;
+    let bottomy = player.pos.y ;
     while( !checkCross(Block,{pos:{x:player.pos.x,y:bottomy},matrix:player.matrix}) ){
         bottomy++ ;
     }
@@ -81,10 +114,9 @@ function Drop(){
     player.pos.y++;
     if( checkCross(Block,player) ){
         player.pos.y--;
-        
         setTimeout(merge(Block,player) ,droptime) ;
     }
-    setTimeout(Drop,droptime);
+    //setTimeout(Drop,droptime);
 }
 
 function merge(Block,player){
@@ -128,19 +160,21 @@ function checkCross(Block,player){
 }
 
 function update(time = 0){
-    
+
+    while( time - lasttime >= droptime ){
+        Drop() ;
+        lasttime = time ;
+    }
     DrawBackground();
     DrawMatrix(Block,{x:0,y:0}) ;
     DrawMatrix(player.matrix,player.pos) ;
     DrawShadow(player.matrix,player.pos) ;
 
-    //requestAnimationFrame(update());
+    requestAnimationFrame(update);
 }
 
 function TetrisStart(){
-    const startTime = Date.now() ;
     update();
-    
 }
 
 document.addEventListener('keydown',function(){
@@ -199,8 +233,4 @@ function Spin(clockwise = true){
             return ;
         }
     }
-    console.log(player.matrix.length);
 }
-
-setInterval(update,10);
-setTimeout(Drop,droptime);
