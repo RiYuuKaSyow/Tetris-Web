@@ -1,15 +1,19 @@
 const board = document.getElementById('tetris') ;
-const context = board.getContext('2d');
+const boardcontext = board.getContext('2d');
+const saveboard = document.getElementById('saveMatrix') ;
+const savecontext = saveboard.getContext('2d') ;
 const scale = 30 ;
 const playing = 1 ;
 const pause = 2 ;
 const end = 0 ;
 const matrixcolors = ['#ccc','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#080'  ] ;
 const shadowcolors = ['#ccc','#c6c' ,'#ca0' ,'#0cc'  ,'#00c'  ,'#c20'  ,'#c02'  ,'#040'  ] ;
-const matrixs      = [  0   ,'T'    ,'O'    ,'I'    ,'J'    ,'L'    ,'Z'    ,'S'    ] ;
-let playstate = end ;
+const matrixTypes  = [  0   ,'T'    ,'O'    ,'I'    ,'J'    ,'L'    ,'Z'    ,'S'    ] ;
 let droptime = 1000 ;
 let lasttime = 0 ;
+let playstate = end ;
+let save = null ;
+let saved = false ;
 
 
 let Block = [] ;
@@ -21,9 +25,10 @@ for(let i = 0 ; i < 20; i++){
 }
 let player = {
     pos : { x : (board.width/scale)/2-1 , y : 0} ,
-    matrix : createMatrix(matrixs[Math.floor(Math.random()*7) + 1 ]) 
+    matrix : createMatrix(matrixTypes[Math.floor(Math.random()*7) + 1 ]) 
 };
 
+DrawSaveBackGroud();
 DrawBackground();
 
 /*
@@ -65,28 +70,28 @@ function createMatrix(type){
 }
 
 function newPlayer(player){
-    player.pos = { x : (board.width/scale)/2 , y : 0},
-    player.matrix = createMatrix(  matrixs[  Math.floor( Math.random()*7 ) + 1 ] ) ;
+    player.pos = { x : (board.width/scale)/2-1 , y : 0},
+    player.matrix = createMatrix(  matrixTypes[  Math.floor( Math.random()*7 ) + 1 ] ) ;
 }
 
 function DrawBackground(){
 
-    context.fillStyle = "#ccc" ;
-    context.fillRect(0,0,board.width ,board.height) ;
-    context.lineWidth = "2" ;
-    context.strokeStyle = "#000" ;
-    context.strokeRect(0,0,board.width ,board.height) ; 
-    //context.scale(30,30);
+    boardcontext.fillStyle = "#ccc" ;
+    boardcontext.fillRect(0,0,board.width ,board.height) ;
+    boardcontext.lineWidth = "2" ;
+    boardcontext.strokeStyle = "#000" ;
+    boardcontext.strokeRect(0,0,board.width ,board.height) ; 
+    //boardcontext.scale(30,30);
 }
 
 function DrawMatrix(matrix,pos){
     matrix.forEach((row,y) => {
         row.forEach((col,x) => {
             if(matrix[y][x] !== 0){
-                context.fillStyle = matrixcolors[matrix[y][x]] ;
-                context.fillRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
-                context.strokeStyle = "#fff" ;
-                context.strokeRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
+                boardcontext.fillStyle = matrixcolors[matrix[y][x]] ;
+                boardcontext.fillRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
+                boardcontext.strokeStyle = "#fff" ;
+                boardcontext.strokeRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
             }
         });
     });
@@ -96,8 +101,8 @@ function DrawShadow(matrix,pos){
     matrix.forEach((row,y) => {
         row.forEach((col,x) => {
             if(matrix[y][x] !== 0){
-                context.strokeStyle = shadowcolors[matrix[y][x]] ;
-                context.strokeRect((pos.x+x)*scale,(bottomy+y)*scale,1*scale,1*scale);
+                boardcontext.strokeStyle = shadowcolors[matrix[y][x]] ;
+                boardcontext.strokeRect((pos.x+x)*scale,(bottomy+y)*scale,1*scale,1*scale);
             }
         });
     });
@@ -120,8 +125,8 @@ function Drop(){
 }
 
 function merge(Block,player){
-    player.matrix.forEach((row,x)=>{
-        row.forEach((col,y)=>{
+    player.matrix.forEach((row,y)=>{
+        row.forEach((col,x)=>{
             if( player.matrix[y][x] !== 0 ){
                 Block[y+player.pos.y][x+player.pos.x] = player.matrix[y][x] ;
             }
@@ -129,6 +134,7 @@ function merge(Block,player){
     })
     Clear(Block) ;
     newPlayer(player) ;
+    saved = false ;
 }
 
 function Clear(Block){
@@ -185,7 +191,7 @@ document.addEventListener('keydown',function(){
         case 'Space'        : GoBottom() ; break;
         case 'KeyZ'         : Spin();     break;
         case 'KeyX'         : Spin(false);     break;
-        case 'KeyC'         : console.log('c');     break;
+        case 'KeyC'         : Save();     break;
     }
 });
 
@@ -233,4 +239,41 @@ function Spin(clockwise = true){
             return ;
         }
     }
+}
+function DrawSave(matrix){
+    DrawSaveBackGroud();
+    DrawSaveMatrix(matrix);
+}
+function Save(){
+
+    if( saved === false ){
+        if( save === null ){
+            save = player.matrix ;
+            newPlayer(player) ;
+        }else{
+            [save , player.matrix] = [player.matrix , save] ;
+            player.pos = { x : (board.width/scale)/2-1 , y : 0} ;
+        }
+    }
+
+    saved = true ;
+    DrawSave(save);
+}
+function DrawSaveBackGroud(){
+    savecontext.fillStyle = '#ccc' ;
+    savecontext.fillRect(0,0,saveboard.width,saveboard.height);
+    savecontext.strokeStyle = "#000" ;
+    savecontext.strokeRect(0,0,saveboard.width,saveboard.height);
+}
+function DrawSaveMatrix(matrix){
+    matrix.forEach((row,y)=>{
+        row.forEach((col,x)=>{
+            if( matrix[y][x] !== 0 ){
+                savecontext.fillStyle = matrixcolors[matrix[y][x]] ;
+                savecontext.fillRect(x*scale,y*scale,1*scale,1*scale);
+                savecontext.strokeStyle = "#fff" ;
+                savecontext.strokeRect(x*scale,y*scale,1*scale,1*scale);
+            }
+        })
+    });
 }
