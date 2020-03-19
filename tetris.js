@@ -29,6 +29,7 @@ let playstate = end ;
 let save = null ;
 let saved = false ;
 let cutdown = false ;
+let touched = false ;
 let lines = 0 ;
 let player = {pos:{x:0,y:0},matrix:[[]]} ;
 
@@ -120,9 +121,9 @@ function update(time = 0){
 }
 function Drop(){
     player.pos.y++;
-    if( checkCross(Block,player) ){
+    if( checkCross(Block,player) && !touched ){
         player.pos.y--;
-        setTimeout(merge(Block,player) ,droptime) ;
+        setTimeout(merge(Block,player) ,droptime*4) ;
     }
 }
 function createMatrix(type){
