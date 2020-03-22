@@ -17,7 +17,7 @@ let Block = [] ;
 const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S'    ] ;
 let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0'  ] ;
 let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00c'  ,'#c20'  ,'#c02'  ,'#0a0'  ] ;
-let repeat = [0,3,3,3,3,3,3,3] ;
+let repeat = [0,2,2,2,2,2,2,2] ;
 let nextMatrixs = [] ;
 /** Playstate*/
 const playing = 1 ;
@@ -31,6 +31,7 @@ let saved = false ;
 let cutdown = false ;
 let touched = false ;
 let lines = 0 ;
+let T = false ;
 let player = {pos:{x:0,y:0},matrix:[[]]} ;
 
 
@@ -155,11 +156,17 @@ function createMatrix(type){
 }
 function initMatrixs(){
     for(let i = 0 ; i < 6; i++){
-        nextMatrixs.push( createMatrix( matrixTypes[Math.floor(Math.random()*7) + 1 ] ) );
+        let type = 0 ;
+        do{
+            type = Math.floor(Math.random()*7) + 1 ;
+        }while( !( repeat[type] > 0 ) ) ;
+        repeat[type]--;
+        nextMatrixs.push( createMatrix( matrixTypes[ type ] ) ) ;
     }
 }
 function getMatrix(){
     let matrix = nextMatrixs.shift() ;
+    T = isT(matrix) ;
     if(repeatinNull()){
         initrepeat();
     }
@@ -241,7 +248,7 @@ function repeatinNull(){
     return true ;
 }
 function initrepeat(){
-    repeat = [0,3,3,3,3,3,3,3] ;
+    repeat = [0,2,2,2,2,2,2,2] ;
 }
 
 /** MatrixControl */
@@ -289,15 +296,23 @@ function getSpin(matrix,clockwise = true){
 }
 function Spin(clockwise = true){
     const xpos = player.pos.x ;
+    const ypos = player.pos.y ;
     let offset = 1 ;
-    //player.matrix = 
+    let forloop = false ;
     getSpin(player.matrix,clockwise) ;
-    while(checkCross(Block,player)){
+    loop:while(checkCross(Block,player)){
         player.pos.x += offset ;
         offset = -( offset + ( offset > 0 ? 1 : -1  ) ) ;
         if(offset > Block[0].length){
+            if( T && !forloop){
+                player.pos.x = xpos ;
+                offset = 1;
+                player.pos.y++ ;
+                forloop = true ;
+                continue loop ;
+            }
             player.pos.x = xpos ;
-            //player.matrix = 
+            player.pos.y = ypos ;
             getSpin(player.matrix,!clockwise) ;
             return ;
         }
@@ -311,6 +326,7 @@ function Save(){
         }else{
             [save , player.matrix] = [player.matrix , save] ;
             player.pos = { x : (board.width/scale)/2-1 , y : 0} ;
+            T = isT(player.matrix) ;
         }
     }
     saved = true ;
@@ -434,4 +450,12 @@ function BottomPos(){
         bottomy++ ;
     }
     return bottomy-1 ;
+}
+function isT(matrix){
+    for(let y = 0 ; y < 3 ; y++){
+        for(let x = 0 ; x < 3 ; x++){
+            if(matrix[y][x] === 1) return true;
+            else if(matrix[y][x] !== 0) return false ;
+        }
+    }
 }
