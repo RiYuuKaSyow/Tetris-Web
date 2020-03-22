@@ -9,7 +9,7 @@
                 <canvas id="saveMatrix" width="132px" height="132px" ></canvas>
             </div>
             <div id="GameBody">
-                <canvas id="tetris" width="330px" height="726px"></canvas>
+                <canvas id="Tetris" width="330px" height="726px"></canvas>
             </div>
             <div id="NextsBody">
                 <canvas id="nexts" width="88px" height="528px"></canvas>
@@ -18,15 +18,23 @@
                 <span id="Score"> 行數 : </span>
             </div>
         </div>
+        <div id="End" style="display:none;">
+            <button id="restart" onclick="TetrisStart();hide('End');">重新開始</button>
+            <span id="End_Score"> 行數 : </span>
+        </div>
         
         
-        <button id="Start" onclick="TetrisStart();hide();">開始</button>
+        <button id="Start" onclick="TetrisStart();hide('Start');">開始</button>
         <script src="tetris.js"></script>
         <script>
-            function hide(){
-                document.getElementById('Start').style.display = 'none' ;
+            function hide(id){
+                document.getElementById(id).style.display = 'none' ;
             }
-            setScore('Score');
+            setBoard('Tetris');
+            setSaveBoard('saveMatrix');
+            setNextBoard('nexts');
+            setScores(['Score','End_Score']);
+            setEnd('End','block');
         </script>
         
     </body>

@@ -2,14 +2,23 @@
 
 /**  Var */
 /** ViewBoard */
+/*
 let board = document.getElementById('tetris') ;
 let boardcontext = board.getContext('2d');
+let scale = board.height / 22 ;
 let saveboard = document.getElementById('saveMatrix') ;
 let savecontext = saveboard.getContext('2d') ;
 let nextsboard = document.getElementById('nexts') ;
 let nextscontext = nextsboard.getContext('2d') ;
-let scale = board.height / 22 ;
-let ScoreObj = document.getElementById('Score');
+*/
+let board ;
+let boardcontext ;
+let scale ;
+let saveboard  ;
+let savecontext ;
+let nextsboard  ;
+let nextscontext ;
+let ScoreObj = [];
 let End = document.getElementById('End');
 let property = 'inline' ;
 let Block = [] ;
@@ -35,43 +44,29 @@ let T = false ;
 let player = {pos:{x:0,y:0},matrix:[[]]} ;
 
 
-/** main */
-main();
 
 
 /** Functions */
 
-/** main() */
-function main(){
-    for(let i = 0 ; i < 22; i++){
-        Block.push([]) ;
-        for(let j = 0 ; j < 10 ; j++){
-            Block[i].push(0);
-        }
-    }
-
-    initMatrixs();
-
-    DrawSaveBackGroud();
-    DrawBackground(Block);
-    DrawHiddenBar();
-    DrawNextBackground();
-}
-
 /** Set */
 function setScore(id){
-    ScoreObj =  document.getElementById(id); ;
+    ScoreObj.push(document.getElementById(id) ) ;
+}
+function setScores(idList){
+    for(let i = 0 ; i < idList.length ; i++){
+        ScoreObj.push( document.getElementById( idList[i] ) ) ;
+    }
 }
 function setBoard(id){
     board = document.getElementById(id) ;
     boardcontext = board.getContext('2d');
-    scale = board.height / 24 ;
+    scale = board.height / 22 ;
 }
 function setSaveBoard(id){
     saveboard = document.getElementById(id) ;
     savecontext = saveboard.getContext('2d') ;
 }
-function setNextboard(id){
+function setNextBoard(id){
     nextsboard = document.getElementById(id) ;
     nextscontext = nextsboard.getContext('2d') ;
 }
@@ -85,10 +80,24 @@ function TetrisStart(){
     if( End !== null ){
         End.style.display = 'none' ;
     }
+
     document.addEventListener('keydown',KeyboardMethod);
     playstate = playing ;
     lines = 0 ;
+
+    initBlock();
+    initrepeat();
+    initMatrixs();
+    initSave();
+
     newPlayer(player) ;
+
+    DrawSaveBackGroud();
+    DrawBackground();
+    DrawHiddenBar();
+    DrawNextBackground();
+    DrawNext(nextMatrixs) ;
+
     update();
 }
 function TetrisEnd(){
@@ -98,6 +107,35 @@ function TetrisEnd(){
     if( End !== null ){
         End.style.display = property ;
     }
+}
+
+/** Init */
+function initMatrixs(){
+    nextMatrixs = [];
+    for(let i = 0 ; i < 6; i++){
+        let type = 0 ;
+        do{
+            type = Math.floor(Math.random()*7) + 1 ;
+        }while( !( repeat[type] > 0 ) ) ;
+        repeat[type]--;
+        nextMatrixs.push( createMatrix( matrixTypes[ type ] ) ) ;
+    }
+}
+function initrepeat(){
+    repeat = [0,2,2,2,2,2,2,2] ;
+}
+function initBlock(){
+    Block = [] ;
+    for(let i = 0 ; i < 22; i++){
+        Block.push([]) ;
+        for(let j = 0 ; j < 10 ; j++){
+            Block[i].push(0);
+        }
+    }
+}
+function initSave(){
+    saved = false ;
+    save = null;
 }
 
 /** GameUpdate */
@@ -154,16 +192,7 @@ function createMatrix(type){
     }
     return matrix ;
 }
-function initMatrixs(){
-    for(let i = 0 ; i < 6; i++){
-        let type = 0 ;
-        do{
-            type = Math.floor(Math.random()*7) + 1 ;
-        }while( !( repeat[type] > 0 ) ) ;
-        repeat[type]--;
-        nextMatrixs.push( createMatrix( matrixTypes[ type ] ) ) ;
-    }
-}
+
 function getMatrix(){
     let matrix = nextMatrixs.shift() ;
     T = isT(matrix) ;
@@ -240,16 +269,14 @@ function UpSpeed(){
     }
 }
 function repeatinNull(){
-    for(let i = 0 ; i < repeat.length ; i++){
+    for(let i = 1 ; i < repeat.length ; i++){
         if(repeat[i] !== 0){
             return false ;
         }
     }
     return true ;
 }
-function initrepeat(){
-    repeat = [0,2,2,2,2,2,2,2] ;
-}
+
 
 /** MatrixControl */
 function KeyboardMethod(){
@@ -438,8 +465,10 @@ function DrawNextMatrixs(nextMatrixs){
 
 /** Score */
 function ShowScore(lines){
-    if( ScoreObj !== undefined ){
-        ScoreObj.innerText = '行數:' + lines ;
+    if( ScoreObj !== [] ){
+        for(let i = 0 ; i < ScoreObj.length ; i++ ){
+            ScoreObj[i].innerText = '行數:' + lines ;
+        }
     }
 }
 
