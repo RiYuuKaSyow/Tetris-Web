@@ -4,6 +4,7 @@ body{
 #GameContainer{
     display: flex;
     justify-content: space-around ;
+    background-color: mediumpurple;
     width: 800px;
     position: relative;
     z-index: 0;
@@ -16,15 +17,26 @@ body{
     position: relative;
     margin-top: -66px;
 }
-#Start{
+#Menu{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
     position: absolute;
     z-index: 2;
     left: 50vw;
-    top: 50vh;
+    top: 0px;
+    width: 330px;
+    height: 726px;
+    margin-left: -150px;
+}
+#restart{
+    position: relative;
+    z-index: 2;
+    top:150px ;
+}
+.btn{
     width: 200px;
     height: 50px;
-    margin-left: -200px;
-    margin-top: -25px;
     font-size: larger;
     background-color: aqua;
 }
@@ -33,4 +45,19 @@ body{
 }
 #Score{
     font-size: larger;
+}
+#End{
+    z-index:3;
+    width: 330px;
+    height: 726px;
+    position: absolute ;
+    left: 50vw;
+    top: 50vh;
+    margin-top: -368px;
+    margin-left: -240px;
+    background-color: rgba(256, 256, 256, 0.2);
+}
+.col{
+    display: flex;
+    flex-direction: column;
 }

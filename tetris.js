@@ -2,15 +2,6 @@
 
 /**  Var */
 /** ViewBoard */
-/*
-let board = document.getElementById('tetris') ;
-let boardcontext = board.getContext('2d');
-let scale = board.height / 22 ;
-let saveboard = document.getElementById('saveMatrix') ;
-let savecontext = saveboard.getContext('2d') ;
-let nextsboard = document.getElementById('nexts') ;
-let nextscontext = nextsboard.getContext('2d') ;
-*/
 let board ;
 let boardcontext ;
 let scale ;
@@ -18,31 +9,35 @@ let saveboard  ;
 let savecontext ;
 let nextsboard  ;
 let nextscontext ;
-let ScoreObj = [];
-let End = document.getElementById('End');
-let property = 'inline' ;
+let End ;
+let property ;
 let Block = [] ;
+let player = {pos:{x:0,y:0},matrix:[[]]} ;
 /** Matrix */
 const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S'    ] ;
 let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0'  ] ;
-let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00c'  ,'#c20'  ,'#c02'  ,'#0a0'  ] ;
+let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00d'  ,'#c20'  ,'#c02'  ,'#0a0'  ] ;
 let repeat = [0,2,2,2,2,2,2,2] ;
 let nextMatrixs = [] ;
-/** Playstate*/
+/** Gamestate*/
 const playing = 1 ;
 const pause = 2 ;
 const end = 0 ;
 let droptime = 1000 ;
-let lasttime = 0 ;
+let droplasttime = 0 ;
 let playstate = end ;
+let cutdown = false ;
+let forty = false ;
+/** PlayerState */
 let save = null ;
 let saved = false ;
-let cutdown = false ;
-let touched = false ;
+let touched = 0 ;
 let lines = 0 ;
+let Time = 0 ;
 let T = false ;
-let player = {pos:{x:0,y:0},matrix:[[]]} ;
-
+/** Score */
+let ScoreObj = [];
+let TimeObj = []
 
 
 
@@ -74,13 +69,22 @@ function setEnd(id,prop){
     End = document.getElementById(id);
     property = prop ;
 }
+function setTime(id){
+    TimeObj.push( document.getElementById(id) ) ;
+}
 
 /** GameState */
-function TetrisStart(){
+function TetrisStart(type){
+    switch(type){
+        case 'clean40' : forty = true ; break;
+        default : break ;
+    }
+    Basic_TetrisStart();
+}
+function Basic_TetrisStart(){
     if( End !== null ){
         End.style.display = 'none' ;
     }
-
     document.addEventListener('keydown',KeyboardMethod);
     playstate = playing ;
     lines = 0 ;
@@ -100,7 +104,7 @@ function TetrisStart(){
 
     update();
 }
-function TetrisEnd(){
+function Basic_TetrisEnd(){
     playstate = end ;
     window.cancelAnimationFrame(update);
     document.removeEventListener('keydown',KeyboardMethod);
@@ -141,14 +145,17 @@ function initSave(){
 /** GameUpdate */
 function update(time = 0){
     if( playstate === playing ){
-        while( time - lasttime >= droptime ){
+        while( time - droplasttime >= droptime ){
+            Time += (time-droplasttime) ;
             Drop() ;
-            lasttime = time ;
+            droplasttime = time ;
         }
         if( lines % 30 === 0 && lines !== 0 && !cutdown ){
             UpSpeed();
             cutdown = true ;
         }
+        ShowTime();
+        ShowScore(lines);
         DrawBackground(Block);
         DrawMatrix(Block,{x:0,y:0}) ;
         DrawMatrix(player.matrix,player.pos) ;
@@ -156,13 +163,20 @@ function update(time = 0){
         DrawHiddenBar();
     
         requestAnimationFrame(update);
+
+        if( forty === true && lines >= 40 ){
+            Basic_TetrisEnd();
+        }
     }
 }
 function Drop(){
     player.pos.y++;
-    if( checkCross(Block,player) && !touched ){
+    if( checkCross(Block,player) && touched > 1 ){
         player.pos.y--;
         setTimeout(merge(Block,player) ,droptime*4) ;
+    }else if(checkCross(Block,player)){
+        touched++;
+        player.pos.y--;
     }
 }
 function createMatrix(type){
@@ -192,7 +206,6 @@ function createMatrix(type){
     }
     return matrix ;
 }
-
 function getMatrix(){
     let matrix = nextMatrixs.shift() ;
     T = isT(matrix) ;
@@ -222,17 +235,18 @@ function merge(Block,player){
             })
         })
     }catch{
-        TetrisEnd();
+        Basic_TetrisEnd();
     }
     Clear(Block) ;
     for(let x = 0 ; x < 10; x++){
         if( Block[1][x] !==0 || Block[0][x] !== 0 ){
-            TetrisEnd();
+            Basic_TetrisEnd();
             return ;
         }   
     }
     newPlayer(player) ;
     saved = false ;
+    touched = 0 ;
 }
 function Clear(Block){
     loop :for(let y = Block.length-1; y >= 0 ; y--){
@@ -246,8 +260,8 @@ function Clear(Block){
         Block[0] = [0,0,0,0,0,0,0,0,0,0] ;
         y++ ;
         lines++;
+        cutdown = false ;
     }
-    ShowScore(lines);
 }
 function checkCross(Block,player){
     for(let y = 0 ; y < player.matrix.length ; y++){
@@ -262,7 +276,7 @@ function checkCross(Block,player){
     return false ;
 }
 function UpSpeed(){
-    if(droptime < 100){
+    if(droptime <= 100){
         return ;
     }else{
         droptime -= 100 ;
@@ -276,7 +290,6 @@ function repeatinNull(){
     }
     return true ;
 }
-
 
 /** MatrixControl */
 function KeyboardMethod(){
@@ -325,17 +338,15 @@ function Spin(clockwise = true){
     const xpos = player.pos.x ;
     const ypos = player.pos.y ;
     let offset = 1 ;
-    let forloop = false ;
     getSpin(player.matrix,clockwise) ;
     loop:while(checkCross(Block,player)){
         player.pos.x += offset ;
         offset = -( offset + ( offset > 0 ? 1 : -1  ) ) ;
         if(offset > Block[0].length){
-            if( T && !forloop){
+            if( player.pos.y < 22 ){
                 player.pos.x = xpos ;
                 offset = 1;
                 player.pos.y++ ;
-                forloop = true ;
                 continue loop ;
             }
             player.pos.x = xpos ;
@@ -467,7 +478,14 @@ function DrawNextMatrixs(nextMatrixs){
 function ShowScore(lines){
     if( ScoreObj !== [] ){
         for(let i = 0 ; i < ScoreObj.length ; i++ ){
-            ScoreObj[i].innerText = '行數:' + lines ;
+            ScoreObj[i].innerText =  lines  ;
+        }
+    }
+}
+function ShowTime(){
+    if( TimeObj !== [] ){
+        for(let i = 0 ; i < TimeObj.length ; i++ ){
+            TimeObj[i].innerText = Math.floor( (Time/1000)/60 ) + '分' + Math.floor( (Time % (60*1000 ))/1000 ) +'秒';
         }
     }
 }

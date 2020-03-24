@@ -5,26 +5,40 @@
     </head>
     <body>
         <div id="GameContainer">
-            <div id="SaveBody">
-                <canvas id="saveMatrix" width="132px" height="132px" ></canvas>
+            <div class="col">
+                <div id="SaveBody">
+                    <canvas id="saveMatrix" width="132px" height="132px" ></canvas>
+                </div>
+                <div id="ScoreBody">
+                    <div>
+                        <span>行數 :</span><br>
+                        <span id="Score"></span>
+                    </div>
+                    <div>
+                        <span>Time :</span><br>
+                        <span id="Time"></span>
+                    </div>
+                </div>
             </div>
-            <div id="GameBody">
-                <canvas id="Tetris" width="330px" height="726px"></canvas>
+            <div class="col">
+                <div id="GameBody">
+                    <canvas id="Tetris" width="330px" height="726px"></canvas>
+                </div>
             </div>
-            <div id="NextsBody">
-                <canvas id="nexts" width="88px" height="528px"></canvas>
-            </div>
-            <div id="ScoreBody">
-                <span id="Score"> 行數 : </span>
+            <div class="col">
+                <div id="NextsBody">
+                    <canvas id="nexts" width="88px" height="528px"></canvas>
+                </div>
             </div>
         </div>
         <div id="End" style="display:none;">
-            <button id="restart" onclick="TetrisStart();hide('End');">重新開始</button>
-            <span id="End_Score"> 行數 : </span>
+            <button id="restart" class="btn" onclick="TetrisStart('basic');hide('End');">重新開始</button><br>
         </div>
         
-        
-        <button id="Start" onclick="TetrisStart();hide('Start');">開始</button>
+        <div id="Menu">
+            <button id="Basic" class="btn" onclick="TetrisStart('basic');hide('Menu');">基本</button>
+            <button id="Forty" class="btn" onclick="TetrisStart('clean40');hide('Menu');">消除40</button>
+        </div>
         <script src="tetris.js"></script>
         <script>
             function hide(id){
@@ -33,8 +47,9 @@
             setBoard('Tetris');
             setSaveBoard('saveMatrix');
             setNextBoard('nexts');
-            setScores(['Score','End_Score']);
-            setEnd('End','block');
+            setScore('Score');
+            setTime('Time')
+            setEnd('Menu','flex');
         </script>
         
     </body>
