@@ -31,13 +31,11 @@
                 </div>
             </div>
         </div>
-        <div id="End" style="display:none;">
-            <button id="restart" class="btn" onclick="TetrisStart('basic');hide('End');">重新開始</button><br>
-        </div>
         
         <div id="Menu">
-            <button id="Basic" class="btn" onclick="TetrisStart('basic');hide('Menu');">基本</button>
-            <button id="Forty" class="btn" onclick="TetrisStart('clean40');hide('Menu');">消除40</button>
+            <button id="Basic" class="btn" onclick="Start('basic');hide('Menu');">基本模式</button>
+            <button id="Forty" class="btn" onclick="Start('clean40');hide('Menu');">40行挑戰</button>
+            <button id="Trash" class="btn" onclick="Start('cleanTrash');hide('Menu');">地鼠模式</button>
         </div>
         <script src="tetris.js"></script>
         <script>

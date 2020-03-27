@@ -14,10 +14,11 @@ let property ;
 let Block = [] ;
 let player = {pos:{x:0,y:0},matrix:[[]]} ;
 /** Matrix */
-const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S'    ] ;
-let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0'  ] ;
-let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00d'  ,'#c20'  ,'#c02'  ,'#0a0'  ] ;
+const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S',   'Trash'] ;
+let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0','#aaa'  ] ;
+let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00d'  ,'#c20'  ,'#c02'  ,'#0a0','#fff'  ] ;
 let repeat = [0,2,2,2,2,2,2,2] ;
+let basictrash = [8,8,8,8,8,8,8,8,8,8] ;
 let nextMatrixs = [] ;
 /** Gamestate*/
 const playing = 1 ;
@@ -28,6 +29,7 @@ let droplasttime = 0 ;
 let playstate = end ;
 let cutdown = false ;
 let forty = false ;
+let cleanTrash = false ;
 /** PlayerState */
 let save = null ;
 let saved = false ;
@@ -74,25 +76,32 @@ function setTime(id){
 }
 
 /** GameState */
-function TetrisStart(type){
+function Start(type){
     switch(type){
         case 'clean40' : forty = true ; break;
+        case 'cleanTrash' : cleanTrash = true ;  break;
         default : break ;
     }
-    Basic_TetrisStart();
+    TetrisStart();
 }
-function Basic_TetrisStart(){
+function TetrisStart(){
     if( End !== null ){
         End.style.display = 'none' ;
     }
     document.addEventListener('keydown',KeyboardMethod);
     playstate = playing ;
     lines = 0 ;
+    Time = 0 ;
 
     initBlock();
     initrepeat();
     initMatrixs();
     initSave();
+
+    if(cleanTrash !== false){
+        initTrash();
+        setTimeout(createTrash,droptime*15) ;
+    }
 
     newPlayer(player) ;
 
@@ -140,6 +149,14 @@ function initBlock(){
 function initSave(){
     saved = false ;
     save = null;
+}
+function initTrash(){
+    basictrash = [8,8,8,8,8,8,8,8,8,8] ;
+    for( let y = 21 ; y > 21-8 ; y-- ){
+        basictrash[ Math.floor( Math.random()*10 ) ] = 0 ;
+        Block[y] = basictrash ;
+        basictrash = [8,8,8,8,8,8,8,8,8,8] ;
+    }
 }
 
 /** GameUpdate */
@@ -289,6 +306,13 @@ function repeatinNull(){
         }
     }
     return true ;
+}
+function createTrash(){
+    basictrash = [8,8,8,8,8,8,8,8,8,8] ;
+    basictrash[ Math.floor( Math.random()*10 ) ] = 0 ;
+    Block.shift();
+    Block.push( basictrash ) ;
+    setTimeout(createTrash,droptime*15);
 }
 
 /** MatrixControl */
@@ -485,7 +509,7 @@ function ShowScore(lines){
 function ShowTime(){
     if( TimeObj !== [] ){
         for(let i = 0 ; i < TimeObj.length ; i++ ){
-            TimeObj[i].innerText = Math.floor( (Time/1000)/60 ) + '分' + Math.floor( (Time % (60*1000 ))/1000 ) +'秒';
+            TimeObj[i].innerText = Math.floor( (Time/1000)/60 ) + '分' + Math.floor( (Time/1000)%60 ) +'秒';
         }
     }
 }
