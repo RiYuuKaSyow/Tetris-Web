@@ -1,28 +1,28 @@
-#<script src="thttps://syow.000webhostapp.com/Tetris/tetris.js"></script>
-
-#you can see index.html to learn how to use this js create a tetris game 
-
-#you need 3 canvas than use 
-
+#<script src="thttps://syow.000webhostapp.com/Tetris/tetris.js"></script>#
+============================================================================
+#you can see index.html to learn how to use this js create a tetris game #
+===========================================================================
+#you need 3 canvas than use #
+-----------------------------
 setBoard( your_tetris_canvas_id );
 setSaveBoard( your_save_canvas_id );
 setNextBoard( your_next_canvas_id );
 
-#and set end view use
-
+#and set end view use#
+---------------------------------------------------------------
 setEnd( your_endview_id , your_endview_css_display_property );
 
 
-#if you need score
-
+#if you need score#
+--------------------
 setScore( your_score_id );
 
-#if you need time
-
+#if you need time#
+-----------------
 setTime( your_time_id );
 
-#if you want to change key
-
+#if you want to change key#
+----------------------------
 setSaveKey( keycode )   //original KeyC
 
 setDropKey( keycode )   // original Space
