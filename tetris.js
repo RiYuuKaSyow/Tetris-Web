@@ -17,7 +17,7 @@ let player = {pos:{x:0,y:0},matrix:[[]]} ;
 const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S',   'Trash'] ;
 let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0','#aaa'  ] ;
 let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00d'  ,'#c20'  ,'#c02'  ,'#0a0','#fff'  ] ;
-let repeat = [0,2,2,2,2,2,2,2] ;
+let repeat = [0,1,1,1,1,1,1,1] ;
 let basictrash = [8,8,8,8,8,8,8,8,8,8] ;
 let nextMatrixs = [] ;
 /** Gamestate*/
@@ -30,6 +30,16 @@ let playstate = end ;
 let cutdown = false ;
 let forty = false ;
 let cleanTrash = false ;
+let createtrash ;
+/** Key */
+let ArrowLeft = 'ArrowLeft' ;
+let ArrowRight = 'ArrowRight' ;
+let ArrowDown = 'ArrowDown' ;
+let Space = 'Space' ;
+let ArrowUp = 'ArrowUp' ;
+let KeyZ = 'KeyZ' ;
+let KeyX = 'keyX' ;
+let KeyC = 'KeyC' ;
 /** PlayerState */
 let save = null ;
 let saved = false ;
@@ -74,6 +84,21 @@ function setEnd(id,prop){
 function setTime(id){
     TimeObj.push( document.getElementById(id) ) ;
 }
+function setSaveKey(keycode){
+    keyC = keycode ;
+}
+function setDropKey(keycode){
+    Space = keycode ;
+}
+function setKeyZ(keycode){
+    KeyZ = keycode ;
+}
+function setKeyX(keycode){
+    KeyX = keycode ;
+}
+function setArrowUp(keycode){
+    ArrowUp = keycode ;
+}
 
 /** GameState */
 function Start(type){
@@ -90,9 +115,7 @@ function TetrisStart(){
     }
     document.addEventListener('keydown',KeyboardMethod);
     playstate = playing ;
-    lines = 0 ;
-    Time = 0 ;
-
+    
     initBlock();
     initrepeat();
     initMatrixs();
@@ -100,7 +123,7 @@ function TetrisStart(){
 
     if(cleanTrash !== false){
         initTrash();
-        setTimeout(createTrash,droptime*15) ;
+        createtrash = setTimeout(createTrash,droptime*15) ;
     }
 
     newPlayer(player) ;
@@ -111,12 +134,19 @@ function TetrisStart(){
     DrawNextBackground();
     DrawNext(nextMatrixs) ;
 
+    lines = 0 ;
+    Time = 0 ;
     update();
 }
-function Basic_TetrisEnd(){
+function TetrisEnd(){
     playstate = end ;
     window.cancelAnimationFrame(update);
     document.removeEventListener('keydown',KeyboardMethod);
+    forty = false ;
+    if( cleanTrash === true ){
+        clearTimeout(createtrash) ;
+    }
+    cleanTrash = false ;
     if( End !== null ){
         End.style.display = property ;
     }
@@ -135,7 +165,7 @@ function initMatrixs(){
     }
 }
 function initrepeat(){
-    repeat = [0,2,2,2,2,2,2,2] ;
+    repeat = [0,1,1,1,1,1,1,1] ;
 }
 function initBlock(){
     Block = [] ;
@@ -182,7 +212,7 @@ function update(time = 0){
         requestAnimationFrame(update);
 
         if( forty === true && lines >= 40 ){
-            Basic_TetrisEnd();
+            TetrisEnd();
         }
     }
 }
@@ -252,12 +282,12 @@ function merge(Block,player){
             })
         })
     }catch{
-        Basic_TetrisEnd();
+        TetrisEnd();
     }
     Clear(Block) ;
     for(let x = 0 ; x < 10; x++){
         if( Block[1][x] !==0 || Block[0][x] !== 0 ){
-            Basic_TetrisEnd();
+            TetrisEnd();
             return ;
         }   
     }
@@ -312,20 +342,20 @@ function createTrash(){
     basictrash[ Math.floor( Math.random()*10 ) ] = 0 ;
     Block.shift();
     Block.push( basictrash ) ;
-    setTimeout(createTrash,droptime*15);
+    createtrash = setTimeout(createTrash,droptime*15);
 }
 
 /** MatrixControl */
 function KeyboardMethod(){
     switch(event.code){
-        case 'ArrowLeft'    : ChangeX( -1 ) ;break;
-        case 'ArrowRight'   : ChangeX( 1 )  ;break;
-        case 'ArrowDown'    : ChangeY( 1 )  ;break;
-        case 'Space'        : GoBottom()    ;break;
-        case 'ArrowUp'      : Spin(false)   ;break;
-        case 'KeyZ'         : Spin(false)   ;break;
-        case 'KeyX'         : Spin()        ;break;
-        case 'KeyC'         : Save()        ;break;
+        case  ArrowLeft    : ChangeX( -1 ) ;break;
+        case  ArrowRight   : ChangeX( 1 )  ;break;
+        case  ArrowDown    : ChangeY( 1 )  ;break;
+        case  Space        : GoBottom()    ;break;
+        case  ArrowUp      : Spin(false)   ;break;
+        case  KeyZ         : Spin(false)   ;break;
+        case  KeyX         : Spin()        ;break;
+        case  KeyC         : Save()        ;break;
     }
 }
 function ChangeX(x){
