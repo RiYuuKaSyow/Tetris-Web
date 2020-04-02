@@ -1,4 +1,4 @@
- <h3> <script src="https://syow.000webhostapp.com/Tetris/tetris.js"></script> </h3>
+ ## <script src="https://syow.000webhostapp.com/Tetris/tetris.js"></script> ##
 ---------------------------------------------------------------------------
 
 # you can see index.html to learn how to use this js create a tetris game #
