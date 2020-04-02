@@ -8,6 +8,11 @@
 setBoard( your_tetris_canvas_id ); <br>
 setSaveBoard( your_save_canvas_id ); <br>
 setNextBoard( your_next_canvas_id ); <br>
+## about canvas ##
+Tetris canvas -> 10 (width) : 22 (height)  <br>
+Save canvas -> 4 (width) : 4 (height) <br>
+Next canvas -> 8/3 (width) : 16 (height)
+
 
 # start game #
 ----------------
