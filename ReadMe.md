@@ -1,7 +1,7 @@
  ## <script src="https://syow.000webhostapp.com/Tetris/tetris.js"></script> ##
 ---------------------------------------------------------------------------
 
-# you can see index.html to learn how to use this js create a tetris game #
+## you can see index.html to learn how to use this js create a tetris game ##
 --------------------------------------------------------------------------
 # you need 3 canvas than use #
 -----------------------------
