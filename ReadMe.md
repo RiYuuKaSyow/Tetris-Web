@@ -5,15 +5,15 @@
 --------------------------------------------------------------------------
 # you need 3 canvas than use #
 -----------------------------
-setBoard( your_tetris_canvas_id );
-setSaveBoard( your_save_canvas_id );
-setNextBoard( your_next_canvas_id );
+setBoard( your_tetris_canvas_id ); <br>
+setSaveBoard( your_save_canvas_id ); <br>
+setNextBoard( your_next_canvas_id ); <br>
 
 # start game #
 ----------------
 Start( mode )
 
-mode -
+mode - <br>
 'basic'     -   the basic tetris <br>
 'clean40'   -   challenge to quickly eliminate 40 lines<br>
 'cleanTrash'-   this will create line with one space<br>
