@@ -1,5 +1,6 @@
-# <script src="https://syow.000webhostapp.com/Tetris/tetris.js"></script> #
+ <script src="https://syow.000webhostapp.com/Tetris/tetris.js"></script>
 ---------------------------------------------------------------------------
+
 # you can see index.html to learn how to use this js create a tetris game #
 --------------------------------------------------------------------------
 # you need 3 canvas than use #
@@ -12,9 +13,10 @@ setNextBoard( your_next_canvas_id );
 ----------------
 Start( mode )
 
-mode -  'basic'     :   the basic tetris
-        'clean40'   :   challenge to quickly eliminate 40 lines
-        'cleanTrash':   this will create line with one space
+mode -
+'basic'     -   the basic tetris <br>
+'clean40'   -   challenge to quickly eliminate 40 lines<br>
+'cleanTrash'-   this will create line with one space<br>
 
 # set end view use #
 ---------------------------------------------------------------
