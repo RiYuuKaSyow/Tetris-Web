@@ -38,7 +38,7 @@ let ArrowDown = 'ArrowDown' ;
 let Space = 'Space' ;
 let ArrowUp = 'ArrowUp' ;
 let KeyZ = 'KeyZ' ;
-let KeyX = 'keyX' ;
+let KeyX = 'KeyX' ;
 let KeyC = 'KeyC' ;
 /** PlayerState */
 let save = null ;
@@ -120,6 +120,7 @@ function TetrisStart(){
     initrepeat();
     initMatrixs();
     initSave();
+    initPlayState()
 
     if(cleanTrash !== false){
         initTrash();
@@ -134,8 +135,6 @@ function TetrisStart(){
     DrawNextBackground();
     DrawNext(nextMatrixs) ;
 
-    lines = 0 ;
-    Time = 0 ;
     update();
 }
 function TetrisEnd(){
@@ -187,6 +186,16 @@ function initTrash(){
         Block[y] = basictrash ;
         basictrash = [8,8,8,8,8,8,8,8,8,8] ;
     }
+}
+function initPlayState(){
+    droptime = 1000 ;
+    droplasttime = 0 ;
+    save = null ;
+    saved = false ;
+    touched = 0 ;
+    lines = 0 ;
+    Time = 0 ;
+    T = false ;
 }
 
 /** GameUpdate */
@@ -296,10 +305,9 @@ function merge(Block,player){
     touched = 0 ;
 }
 function Clear(Block){
-    loop :for(let y = Block.length-1; y >= 0 ; y--){
-        for(let x = 0 ; x < Block[0].length; x++){
-            if(Block[y][x] === 0)
-                continue loop ;
+    for(let y = Block.length-1; y >= 0 ; y--){
+        if( checkClear(Block[y]) === false ){
+            continue ;
         }
         for(let x = y ; x > 0 ; x--){
             Block[x] = Block[x-1] ;
@@ -309,6 +317,13 @@ function Clear(Block){
         lines++;
         cutdown = false ;
     }
+}
+function checkClear(Line){
+    for(let x = 0 ; x < Line.length; x++){
+        if(Line[x] === 0)
+            return false ;
+    }
+    return true ;
 }
 function checkCross(Block,player){
     for(let y = 0 ; y < player.matrix.length ; y++){
@@ -347,12 +362,13 @@ function createTrash(){
 
 /** MatrixControl */
 function KeyboardMethod(){
+    //console.log(event.code) ;
     switch(event.code){
         case  ArrowLeft    : ChangeX( -1 ) ;break;
         case  ArrowRight   : ChangeX( 1 )  ;break;
         case  ArrowDown    : ChangeY( 1 )  ;break;
         case  Space        : GoBottom()    ;break;
-        case  ArrowUp      : Spin(false)   ;break;
+        case  ArrowUp      : Spin()        ;break;
         case  KeyZ         : Spin(false)   ;break;
         case  KeyX         : Spin()        ;break;
         case  KeyC         : Save()        ;break;
@@ -411,12 +427,14 @@ function Spin(clockwise = true){
     }
 }
 function Save(){
+    let matrix = createMatrix( getPlayerMatrixType() ) ;
     if( saved === false ){
         if( save === null ){
-            save = player.matrix ;
+            save = matrix ;
             newPlayer(player) ;
         }else{
-            [save , player.matrix] = [player.matrix , save] ;
+            player.matrix = save ;
+            save = matrix ;
             player.pos = { x : (board.width/scale)/2-1 , y : 0} ;
             T = isT(player.matrix) ;
         }
@@ -557,6 +575,14 @@ function isT(matrix){
         for(let x = 0 ; x < 3 ; x++){
             if(matrix[y][x] === 1) return true;
             else if(matrix[y][x] !== 0) return false ;
+        }
+    }
+}
+function getPlayerMatrixType(){
+    for(let i = 0 ; i < player.matrix.length ; i++){
+        for(let j = 0 ; j < player.matrix[0].length ; j++){
+            if( player.matrix[i][j] !== 0 )
+                return matrixTypes[ player.matrix[i][j] ] ;
         }
     }
 }
