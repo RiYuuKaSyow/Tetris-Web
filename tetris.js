@@ -25,7 +25,7 @@ const playing = 1 ;
 const pause = 2 ;
 const end = 0 ;
 let droptime = 1000 ;
-let droplasttime = 0 ;
+let lastupdatetime = 0 ;
 let playstate = end ;
 let cutdown = false ;
 let forty = false ;
@@ -40,6 +40,8 @@ let ArrowUp = 'ArrowUp' ;
 let KeyZ = 'KeyZ' ;
 let KeyX = 'KeyX' ;
 let KeyC = 'KeyC' ;
+let KeyP = 'KeyP' ;
+let Escape = 'Escape' ;
 /** PlayerState */
 let save = null ;
 let saved = false ;
@@ -47,10 +49,12 @@ let touched = 0 ;
 let lines = 0 ;
 let Time = 0 ;
 let T = false ;
+let spin = false ;
 /** Score */
 let ScoreObj = [];
-let TimeObj = []
-
+let TimeObj = [] ;
+let timeID ;
+let lastTime ;
 
 
 /** Functions */
@@ -134,12 +138,14 @@ function TetrisStart(){
     DrawHiddenBar();
     DrawNextBackground();
     DrawNext(nextMatrixs) ;
-
-    update();
+    lastTime = Date.now() ;
+    timeID = setTimeout(ShowTime,1) ;
+    update(0);
 }
 function TetrisEnd(){
     playstate = end ;
     window.cancelAnimationFrame(update);
+    window.clearTimeout(timeID) ;
     document.removeEventListener('keydown',KeyboardMethod);
     forty = false ;
     if( cleanTrash === true ){
@@ -149,6 +155,49 @@ function TetrisEnd(){
     if( End !== null ){
         End.style.display = property ;
     }
+}
+function TetrisPause(){
+
+    if( playstate === playing ){
+        playstate = pause ;
+        
+        window.cancelAnimationFrame(update);
+        window.clearTimeout(timeID) ;
+        document.removeEventListener('keydown',KeyboardMethod);
+        document.addEventListener('keydown',KeyboardPauseSet);
+        if( cleanTrash === true ){
+            clearTimeout(createtrash) ;
+        }
+
+        showPause();
+
+    }else if(playstate === pause){
+        TetrisReStart() ;
+    }
+    
+}
+function TetrisReStart(){
+    
+    if( playstate === pause ){
+        playstate = playing ;
+        hidePause();
+
+        document.removeEventListener('keydown',KeyboardPauseSet);
+        document.addEventListener('keydown',KeyboardMethod);
+        
+        timeID = setTimeout(ShowTime,1) ;
+        update(0);
+        if(cleanTrash !== false){
+            createtrash = setTimeout(createTrash,droptime*15) ;
+        }
+    }
+}
+
+function showPause(){
+    
+}
+function hidePause(){
+
 }
 
 /** Init */
@@ -190,6 +239,7 @@ function initTrash(){
 function initPlayState(){
     droptime = 1000 ;
     droplasttime = 0 ;
+    lastupdatetime = 0 ;
     save = null ;
     saved = false ;
     touched = 0 ;
@@ -200,9 +250,9 @@ function initPlayState(){
 
 /** GameUpdate */
 function update(time = 0){
+
     if( playstate === playing ){
-        while( time - droplasttime >= droptime ){
-            Time += (time-droplasttime) ;
+        if( time - droplasttime >= droptime ){
             Drop() ;
             droplasttime = time ;
         }
@@ -210,29 +260,32 @@ function update(time = 0){
             UpSpeed();
             cutdown = true ;
         }
-        ShowTime();
+
         ShowScore(lines);
         DrawBackground(Block);
         DrawMatrix(Block,{x:0,y:0}) ;
         DrawMatrix(player.matrix,player.pos) ;
         DrawShadow(player.matrix,player.pos) ;
         DrawHiddenBar();
-    
-        requestAnimationFrame(update);
 
         if( forty === true && lines >= 40 ){
             TetrisEnd();
         }
+
+        requestAnimationFrame(update);
     }
 }
 function Drop(){
     player.pos.y++;
     if( checkCross(Block,player) && touched > 1 ){
         player.pos.y--;
-        setTimeout(merge(Block,player) ,droptime*4) ;
+        setTimeout(merge(Block,player) ,droptime*2) ;
     }else if(checkCross(Block,player)){
+        spin = false ;
         touched++;
         player.pos.y--;
+    }else{
+        spin = false ;
     }
 }
 function createMatrix(type){
@@ -299,6 +352,9 @@ function merge(Block,player){
             TetrisEnd();
             return ;
         }   
+    }
+    if( T === true && spin === true ){
+        console.log("T-spin");
     }
     newPlayer(player) ;
     saved = false ;
@@ -372,6 +428,8 @@ function KeyboardMethod(){
         case  KeyZ         : Spin(false)   ;break;
         case  KeyX         : Spin()        ;break;
         case  KeyC         : Save()        ;break;
+        case  KeyP         : TetrisPause() ;break;
+        case  Escape       : TetrisPause() ;break;
     }
 }
 function ChangeX(x){
@@ -407,9 +465,9 @@ function getSpin(matrix,clockwise = true){
 function Spin(clockwise = true){
     const xpos = player.pos.x ;
     const ypos = player.pos.y ;
-    let offset = 1 ;
+    let offset = 1 , ychange = false ;
     getSpin(player.matrix,clockwise) ;
-    loop:while(checkCross(Block,player)){
+    while(checkCross(Block,player)){
         player.pos.x += offset ;
         offset = -( offset + ( offset > 0 ? 1 : -1  ) ) ;
         if(offset > Block[0].length){
@@ -417,13 +475,17 @@ function Spin(clockwise = true){
                 player.pos.x = xpos ;
                 offset = 1;
                 player.pos.y++ ;
-                continue loop ;
-            }
-            player.pos.x = xpos ;
-            player.pos.y = ypos ;
-            getSpin(player.matrix,!clockwise) ;
-            return ;
+                ychange = true ;
+            }else{
+                player.pos.x = xpos ;
+                player.pos.y = ypos ;
+                getSpin(player.matrix,!clockwise) ;
+                return ;
+            }  
         }
+    }
+    if(ychange === true){
+        spin = true ;
     }
 }
 function Save(){
@@ -441,6 +503,12 @@ function Save(){
     }
     saved = true ;
     DrawSave(save);
+}
+function KeyboardPauseSet(){
+    switch(event.code){
+        case  KeyP         : TetrisReStart() ;break;
+        case  Escape       : TetrisReStart() ;break;
+    }
 }
 
 /** DrawView */
@@ -555,11 +623,15 @@ function ShowScore(lines){
     }
 }
 function ShowTime(){
+    let nowtime = Date.now();
+    Time += nowtime - lastTime ;
+    lastTime = Date.now();
     if( TimeObj !== [] ){
         for(let i = 0 ; i < TimeObj.length ; i++ ){
-            TimeObj[i].innerText = Math.floor( (Time/1000)/60 ) + '分' + Math.floor( (Time/1000)%60 ) +'秒';
+            TimeObj[i].innerText = Math.floor( (Time/1000)/60 ) + '分' + Math.floor( (Time/1000)%60 ) +'秒' + (Array(3).join('0')+Time%1000).slice(-3) ;
         }
     }
+    timeID = setTimeout(ShowTime,1) ;
 }
 
 /** Others */
