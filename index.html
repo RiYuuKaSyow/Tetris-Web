@@ -56,6 +56,12 @@
             setScore('Score');
             setTime('Time')
             setEnd('Menu','flex');
+
+            let url = new URLSearchParams(window.location.search);
+            if( url.has('suisei') === true ){
+                setSuiSei();
+            }
+
         </script>
         
     </body>

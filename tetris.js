@@ -17,6 +17,7 @@ let player = {pos:{x:0,y:0},matrix:[[]]} ;
 const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S',   'Trash'] ;
 let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0','#aaa'  ] ;
 let shadowcolors    = ['#333','#c6c' ,'#ca0' ,'#0cc'  ,'#00d'  ,'#c20'  ,'#c02'  ,'#0a0','#fff'  ] ;
+var imgs = [] ;
 let repeat = [0,1,1,1,1,1,1,1] ;
 let basictrash = [8,8,8,8,8,8,8,8,8,8] ;
 let nextMatrixs = [] ;
@@ -31,6 +32,7 @@ let cutdown = false ;
 let forty = false ;
 let cleanTrash = false ;
 let createtrash ;
+let suisei = false ;
 /** Key */
 let ArrowLeft = 'ArrowLeft' ;
 let ArrowRight = 'ArrowRight' ;
@@ -102,6 +104,15 @@ function setKeyX(keycode){
 }
 function setArrowUp(keycode){
     ArrowUp = keycode ;
+}
+function setSuiSei(){
+    img1 = new Image(); img2 = new Image(); img3 = new Image(); img4 = new Image();
+    img1.src = './suisei/IMG_20200510_153757.jpg' ;
+    img2.src = './suisei/IMG_20200510_153800.jpg' ;
+    img3.src = './suisei/IMG_20200510_153805.jpg' ;
+    img4.src = './suisei/IMG_20200510_153802.jpg' ;
+    imgs    = ['#000', img1 ,img2 ,img3  ,img4  ,img1 ,img2 ,img3  ,img4  ] ;
+    suisei = true ;
 }
 
 /** GameState */
@@ -262,11 +273,19 @@ function update(time = 0){
         }
 
         ShowScore(lines);
-        DrawBackground(Block);
-        DrawMatrix(Block,{x:0,y:0}) ;
-        DrawMatrix(player.matrix,player.pos) ;
+        DrawBackground(Block); 
+        
+        if( suisei !== true ){
+            DrawMatrix(Block,{x:0,y:0}) ;
+            DrawMatrix(player.matrix,player.pos) ;
+        }else{
+            DrawSuiseiMatrix(Block,{x:0,y:0}) ;
+            DrawSuiseiMatrix(player.matrix,player.pos) ; 
+        }
+        
         DrawShadow(player.matrix,player.pos) ;
         DrawHiddenBar();
+
 
         if( forty === true && lines >= 40 ){
             TetrisEnd();
@@ -540,6 +559,19 @@ function DrawMatrix(matrix,pos){
         });
     });
 }
+function DrawSuiseiMatrix(matrix,pos){
+
+    matrix.forEach((row,y) => {
+        row.forEach((col,x) => {
+            if(matrix[y][x] !== 0){
+                boardcontext.drawImage(imgs[matrix[y][x]],(pos.x+x)*scale,(pos.y+y)*scale,scale,scale) ;        
+                boardcontext.strokeStyle = "#fff" ;
+                boardcontext.strokeRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
+            }
+        });
+    });
+
+}
 function DrawShadow(matrix,pos){
     let bottomy = BottomPos() ;
     matrix.forEach((row,y) => {
@@ -553,7 +585,12 @@ function DrawShadow(matrix,pos){
 }
 function DrawSave(matrix){
     DrawSaveBackGroud();
-    DrawSaveMatrix(matrix);
+    if(suisei !== true){
+        DrawSaveMatrix(matrix);
+    }else{
+        DrawSaveSuiseiMatrix(matrix);
+    }
+    
 }
 function DrawSaveBackGroud(){
     for(let y = 0 ; y < 4 ; y++){
@@ -580,9 +617,26 @@ function DrawSaveMatrix(matrix){
         })
     });
 }
+function DrawSaveSuiseiMatrix(matrix){
+    let startpos = 2 - Math.floor(matrix.length/2) ;
+    matrix.forEach((row,y)=>{
+        row.forEach((col,x)=>{
+            if( matrix[y][x] !== 0 ){
+                savecontext.drawImage(imgs[matrix[y][x]],(x+startpos)*scale,(y+startpos)*scale,1*scale,1*scale) ; 
+                savecontext.strokeStyle = "#fff" ;
+                savecontext.strokeRect((x+startpos)*scale,(y+startpos)*scale,1*scale,1*scale);
+            }
+        })
+    });
+}
 function DrawNext(nextMatrixs){
     DrawNextBackground();
-    DrawNextMatrixs(nextMatrixs);
+    if( suisei !== true ){
+        DrawNextMatrixs(nextMatrixs);
+    }else{
+        DrawNextSuiseiMatrixs(nextMatrixs);
+    }
+    
 }
 function DrawNextBackground(){
     for(let i = 0 ; i < 6 ; i++){
@@ -606,6 +660,20 @@ function DrawNextMatrixs(nextMatrixs){
                 if( matrix[y][x] !== 0 ){
                     nextscontext.fillStyle = matrixcolors[matrix[y][x]] ;
                     nextscontext.fillRect((x+startpos)*2*scale/3,(y+startpos)*2*scale/3+nextsboard.height/6*i,2*scale/3,2*scale/3);
+                    nextscontext.strokeStyle = "#fff" ;
+                    nextscontext.strokeRect((x+startpos)*2*scale/3,(y+startpos)*2*scale/3+nextsboard.height/6*i,2*scale/3,2*scale/3);
+                }
+            })
+        })
+    })
+}
+function DrawNextSuiseiMatrixs(nextMatrixs){
+    nextMatrixs.forEach((matrix,i) =>{
+        let startpos = 2 - Math.floor(matrix.length/2) ;
+        matrix.forEach((row,y) =>{
+            row.forEach((col,x)=>{
+                if( matrix[y][x] !== 0 ){
+                    nextscontext.drawImage(imgs[matrix[y][x]],(x+startpos)*2*scale/3,(y+startpos)*2*scale/3+nextsboard.height/6*i,2*scale/3,2*scale/3) ; 
                     nextscontext.strokeStyle = "#fff" ;
                     nextscontext.strokeRect((x+startpos)*2*scale/3,(y+startpos)*2*scale/3+nextsboard.height/6*i,2*scale/3,2*scale/3);
                 }
