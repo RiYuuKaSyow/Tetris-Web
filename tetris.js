@@ -195,7 +195,7 @@ function TetrisReStart(){
 
         document.removeEventListener('keydown',KeyboardPauseSet);
         document.addEventListener('keydown',KeyboardMethod);
-        
+        lastTime = Date.now();
         timeID = setTimeout(ShowTime,1) ;
         update(0);
         if(cleanTrash !== false){
