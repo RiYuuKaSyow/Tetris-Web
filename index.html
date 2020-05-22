@@ -40,29 +40,16 @@
             直接下降 : Space <br>
             暫停 : Esc ， p <br>
         </div>
-        <div id="Menu">
-            <button id="Basic" class="btn" onclick="Start('basic');hide('Menu');">基本模式</button>
-            <button id="Forty" class="btn" onclick="Start('clean40');hide('Menu');">40行挑戰</button>
-            <button id="Trash" class="btn" onclick="Start('cleanTrash');hide('Menu');">地鼠模式</button>
+        <div id="GameMenu" class="Menu">
+            <button id="Basic" class="btn">基本模式</button>
+            <button id="Forty" class="btn">40行挑戰</button>
+            <button id="Trash" class="btn">地鼠模式</button>
         </div>
-        <script src="tetris.js"></script>
-        <script>
-            function hide(id){
-                document.getElementById(id).style.display = 'none' ;
-            }
-            setBoard('Tetris');
-            setSaveBoard('saveMatrix');
-            setNextBoard('nexts');
-            setScore('Score');
-            setTime('Time')
-            setEnd('Menu','flex');
-
-            let url = new URLSearchParams(window.location.search);
-            if( url.has('suisei') === true ){
-                setSuiSei();
-            }
-
-        </script>
+        <div id="PauseMenu" class="Menu" style="display: none;">
+            <button id="Continue" class="btn" >繼續</button>
+            <button id="Endbtn" class="btn">結束</button>
+        </div>
+        <script src="index.min.js"></script>
         
     </body>
 </html>

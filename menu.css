@@ -17,17 +17,19 @@ body{
     position: relative;
     margin-top: -66px;
 }
-#Menu{
+.Menu{
+    background-color: white;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+    align-items: center;
     position: absolute;
     z-index: 2;
     left: 50vw;
     top: 0px;
-    width: 330px;
+    width: 820px;
     height: 726px;
-    margin-left: -150px;
+    margin-left: -420px;
 }
 #restart{
     position: relative;

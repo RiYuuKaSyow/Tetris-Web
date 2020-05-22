@@ -10,6 +10,7 @@ let savecontext ;
 let nextsboard  ;
 let nextscontext ;
 let End ;
+let Pause ;
 let property ;
 let Block = [] ;
 let player = {pos:{x:0,y:0},matrix:[[]]} ;
@@ -114,6 +115,9 @@ function setSuiSei(){
     imgs    = ['#000', img1 ,img2 ,img3  ,img4  ,img1 ,img2 ,img3  ,img4  ] ;
     suisei = true ;
 }
+function setPause(id){
+    Pause = document.getElementById(id) ;
+}
 
 /** GameState */
 function Start(type){
@@ -205,10 +209,14 @@ function TetrisReStart(){
 }
 
 function showPause(){
-    
+    if( Pause !== undefined ){
+        Pause.style.display = 'flex' ;
+    }
 }
 function hidePause(){
-
+    if( Pause !== undefined ){
+        Pause.style.display = 'none' ;
+    }
 }
 
 /** Init */
@@ -298,7 +306,8 @@ function Drop(){
     player.pos.y++;
     if( checkCross(Block,player) && touched > 1 ){
         player.pos.y--;
-        setTimeout(merge(Block,player) ,droptime*2) ;
+        //setTimeout(merge(Block,player) ,droptime) ;
+        merge(Block,player)
     }else if(checkCross(Block,player)){
         spin = false ;
         touched++;
@@ -362,7 +371,7 @@ function merge(Block,player){
                 }
             })
         })
-    }catch{
+    }catch(e){
         TetrisEnd();
     }
     Clear(Block) ;
@@ -565,7 +574,7 @@ function DrawSuiseiMatrix(matrix,pos){
         row.forEach((col,x) => {
             if(matrix[y][x] !== 0){
                 boardcontext.drawImage(imgs[matrix[y][x]],(pos.x+x)*scale,(pos.y+y)*scale,scale,scale) ;        
-                boardcontext.strokeStyle = "#fff" ;
+                boardcontext.strokeStyle = matrixcolors[matrix[y][x]] ;
                 boardcontext.strokeRect((pos.x+x)*scale,(pos.y+y)*scale,1*scale,1*scale);
             }
         });
@@ -623,7 +632,7 @@ function DrawSaveSuiseiMatrix(matrix){
         row.forEach((col,x)=>{
             if( matrix[y][x] !== 0 ){
                 savecontext.drawImage(imgs[matrix[y][x]],(x+startpos)*scale,(y+startpos)*scale,1*scale,1*scale) ; 
-                savecontext.strokeStyle = "#fff" ;
+                savecontext.strokeStyle = matrixcolors[matrix[y][x]] ; ;
                 savecontext.strokeRect((x+startpos)*scale,(y+startpos)*scale,1*scale,1*scale);
             }
         })
@@ -674,7 +683,7 @@ function DrawNextSuiseiMatrixs(nextMatrixs){
             row.forEach((col,x)=>{
                 if( matrix[y][x] !== 0 ){
                     nextscontext.drawImage(imgs[matrix[y][x]],(x+startpos)*2*scale/3,(y+startpos)*2*scale/3+nextsboard.height/6*i,2*scale/3,2*scale/3) ; 
-                    nextscontext.strokeStyle = "#fff" ;
+                    nextscontext.strokeStyle = matrixcolors[matrix[y][x]] ; ;
                     nextscontext.strokeRect((x+startpos)*2*scale/3,(y+startpos)*2*scale/3+nextsboard.height/6*i,2*scale/3,2*scale/3);
                 }
             })
