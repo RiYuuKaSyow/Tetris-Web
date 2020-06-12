@@ -14,6 +14,7 @@ let Pause ;
 let property ;
 let Block = [] ;
 let player = {pos:{x:0,y:0},matrix:[[]]} ;
+let tspinview = null ;
 /** Matrix */
 const matrixTypes   = [  0   ,'T'    ,'O'    ,  'I'   , 'J'     ,'L'    ,'Z'    ,'S',   'Trash'] ;
 let matrixcolors    = ['#000','#a0a' ,'#ec0' ,'#0ee'  ,'#00f'  ,'#f50'  ,'#d13'  ,'#0c0','#aaa'  ] ;
@@ -118,6 +119,9 @@ function setSuiSei(){
 function setPause(id){
     Pause = document.getElementById(id) ;
 }
+function setTspin(id){
+    tspinview = document.getElementById(id);
+}
 
 /** GameState */
 function Start(type){
@@ -207,16 +211,21 @@ function TetrisReStart(){
         }
     }
 }
-
 function showPause(){
     if( Pause !== undefined ){
         Pause.style.display = 'flex' ;
     }
+    ClearBoard();
 }
 function hidePause(){
     if( Pause !== undefined ){
         Pause.style.display = 'none' ;
     }
+    DrawSave(save);
+    DrawBackground();
+    DrawHiddenBar();
+    DrawNextBackground();
+    DrawNext(nextMatrixs) ;
 }
 
 /** Init */
@@ -304,12 +313,12 @@ function update(time = 0){
 }
 function Drop(){
     player.pos.y++;
-    if( checkCross(Block,player) && touched > 1 ){
+    let cross = checkCross(Block,player) ;
+    if( cross && ( touched > 1 || spin) ){
         player.pos.y--;
         //setTimeout(merge(Block,player) ,droptime) ;
         merge(Block,player)
-    }else if(checkCross(Block,player)){
-        spin = false ;
+    }else if(cross){
         touched++;
         player.pos.y--;
     }else{
@@ -363,6 +372,7 @@ function newPlayer(player){
     player.matrix = getMatrix() ;
 }
 function merge(Block,player){
+    console.log(spin);
     try{
         player.matrix.forEach((row,y)=>{
             row.forEach((col,x)=>{
@@ -371,6 +381,22 @@ function merge(Block,player){
                 }
             })
         })
+        if( T === true && spin === true ){
+            let list = [] ;
+            if( player.pos.y+2 > 21 ){
+                list = [ Block[player.pos.y][player.pos.x] ,
+                Block[player.pos.y][player.pos.x+2] ]
+            }else{
+                list = [ Block[player.pos.y][player.pos.x] ,
+                    Block[player.pos.y][player.pos.x+2] ,
+                    Block[player.pos.y+2][player.pos.x] , 
+                    Block[player.pos.y+2][player.pos.x+2] ];
+            }
+            console.log(list.filter(n => n === 0).length);
+            if( list.filter(n => n === 0).length <= 1 ){
+                    Tspin();
+                }
+        }
     }catch(e){
         TetrisEnd();
     }
@@ -381,9 +407,11 @@ function merge(Block,player){
             return ;
         }   
     }
+    /*
     if( T === true && spin === true ){
         console.log("T-spin");
     }
+    */
     newPlayer(player) ;
     saved = false ;
     touched = 0 ;
@@ -464,16 +492,22 @@ function ChangeX(x){
     player.pos.x += x ;
     if(checkCross(Block,player)){
         player.pos.x -= x ;
+    }else{
+        spin = false ;
     }
 }
 function ChangeY(y){
     player.pos.y += y ;
     if(checkCross(Block,player)){
         player.pos.y -= y ;
+    }else{
+        spin = false ;
     }
 }
 function GoBottom(){
     player.pos.y = BottomPos() ;
+    spin = false ;
+    console.log(spin);
     merge(Block,player);
 }
 function getSpin(matrix,clockwise = true){
@@ -512,9 +546,7 @@ function Spin(clockwise = true){
             }  
         }
     }
-    if(ychange === true){
-        spin = true ;
-    }
+    spin = true ;
 }
 function Save(){
     let matrix = createMatrix( getPlayerMatrixType() ) ;
@@ -690,6 +722,14 @@ function DrawNextSuiseiMatrixs(nextMatrixs){
         })
     })
 }
+function ClearBoard(){
+    boardcontext.fillStyle = matrixcolors[0] ;
+    boardcontext.fillRect(0,2*scale,10*scale,20*scale);
+    nextscontext.fillStyle = matrixcolors[0] ;
+    nextscontext.fillRect(0,0,4*2*scale/3,4*6*2*scale/3);
+    savecontext.fillStyle = matrixcolors[0] ;
+    savecontext.fillRect(0,0,4*scale,4*scale);
+}
 
 /** Score */
 function ShowScore(lines){
@@ -709,6 +749,20 @@ function ShowTime(){
         }
     }
     timeID = setTimeout(ShowTime,1) ;
+}
+function Tspin(){
+    showTspin();
+    setTimeout(hideTsipn,250);
+    setTimeout(showTspin,500);
+    setTimeout(hideTsipn,1000);
+}
+function showTspin(){
+    if( tspinview !== null )
+        tspinview.style.display = 'block' ;
+}
+function hideTsipn(){
+    if( tspinview !== null )
+        tspinview.style.display = 'none' ;
 }
 
 /** Others */

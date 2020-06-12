@@ -8,6 +8,7 @@ setScore('Score');
 setTime('Time')
 setEnd('GameMenu','flex');
 setPause('PauseMenu');
+setTspin('Tspin')
 
 let url = new URLSearchParams(window.location.search);
 if( url.has('suisei') === true ){
