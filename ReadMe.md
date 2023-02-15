@@ -1,3 +1,5 @@
+ https://riyuukasyow.github.io/Tetris-Web/
+ 
  ## <script src="https://syow.000webhostapp.com/Tetris/tetris.js"></script> ##
 ---------------------------------------------------------------------------
 
